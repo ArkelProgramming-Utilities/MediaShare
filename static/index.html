@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf8">
+  <title>MediaServer</title>
+  <style>
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto auto auto;
+      padding: 10px;
+    }
+    .media-item{
+      width:100%
+    }
+    .title-media-item{
+      background-color: gray;
+    padding: 5px 12px;
+    font-size: 15px;
+    margin: 0;
+    }
+
+    .grid-item {
+      border: 1px solid rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      background-color: darkgray;
+    }
+    #backbtn, #forwardbtn{
+      height: 100%;
+      padding: 4px;
+      margin: 0px 4px
+    }
+    #pagenum{
+      margin: 0;
+      padding: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="display: flex;">
+    <button id="backbtn" onclick="changepage(-1);">Back</button>
+    <p id="pagenum">0</p>
+    <button id="forwardbtn" onclick="changepage(1);">forward</button>
+  </div>
+  <div id="mainGrid" class="grid-container">
+  </div>
+</body>
+<script>
+  var pagenum = 0;
+  
+  let grid = document.getElementById("mainGrid")
+  
+  function changepage(val){
+    pagenum+=val;
+    document.getElementById("pagenum").innerText = pagenum;
+    FetchElements();
+  }
+
+  function FetchElements(){
+  grid.innerHTML = "";
+  fetch("/media-info/" + pagenum).then(function(response) {
+  response.json().then(function(json) {
+    for (var elem of json) {
+        
+
+        var grid_item = document.createElement("div");
+        grid_item.classList = "grid-item";
+
+        var media = null;
+        if(elem[2]=="img"){
+          media = document.createElement("img");
+          media.src = "get-media/" + elem[0];
+        }else if(elem[2]=="vid"){
+          media = document.createElement("video");
+          media.setAttribute('controls','');
+          var src = document.createElement("source");
+          src.src = "get-media/" + elem[0];
+          src.type = "video/" + elem[3];
+          media.appendChild(src);
+        }else{
+          media = document.createElement("p");
+          const contentsize = 256;
+          fetch("/get-media/" + elem[0]).then(function(response) {
+          response.text().then(function(txt) {
+            if(txt.length > contentsize)
+            media.innerText = txt.substr(0, 256);
+            else
+            media.innerText = txt;
+          });
+          });
+          
+        }
+        media.classList = "media-item";
+        
+        var title = document.createElement("h3");
+        title.classList = "title-media-item";
+        title.innerText = elem[1];
+        
+
+
+        grid_item.appendChild(media);
+        grid_item.appendChild(title);
+        grid.appendChild(grid_item);
+      }
+  });
+});
+  }
+
+  FetchElements();
+</script>
+
+</html>
