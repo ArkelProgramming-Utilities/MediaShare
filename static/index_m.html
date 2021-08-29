@@ -3,6 +3,8 @@
 
 <head>
   <meta charset="utf8">
+  <size style="display: none">100</size>
+  <columns style="display: none">1</columns>
   <title>MediaServer</title>
   <style>
     .grid-container {
@@ -27,33 +29,11 @@
       overflow: hidden;
       background-color: darkgray;
     }
-
-    .btns {
-      height: 100%;
-      width: 100%;
-      padding: 20px 0;
-      margin: 0px 4px
-    }
-
-    #pagenum {
-      margin: 0;
-      padding: 4px;
-    }
   </style>
 </head>
 
 <body>
-  <div style="display: flex;">
-    <button class="btns" onclick="changepage(-1);">Back</button>
-    <p id="pagenum">0</p>
-    <button class="btns" onclick="changepage(1);">forward</button>
-  </div>
   <div id="mainGrid" class="grid-container">
-  </div>
-<div style="display: flex;">
-    <button class="btns" onclick="changepage(-1);">Back</button>
-    <p id="pagenum1">0</p>
-    <button class="btns" onclick="changepage(1);">forward</button>
   </div>
 </body>
 <script type="text/javascript" src="static/index.js"></script>

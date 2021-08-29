@@ -1,15 +1,11 @@
 import os
 import base64
-media = dict()
 
 img_ = ["jpg", "png", "bmp"]
 vid_ = ["mov", "mp4", "mkv"]
 exclude_ = ["lnk", "desktop", "exe", "ini"]
-
-def getMediaPath(id):
-    if id not in media:
-        return False, ""
-    return True, media[id]
+#ROOTDIR = "C:\\Users\\nicho\\Videos"
+ROOTDIR = "F:\\"
 
 def getType(filename):
     filename1, filetype1 = os.path.splitext(filename)
@@ -24,49 +20,37 @@ def getType(filename):
     else:
         return "unk"
 
-mediaperpage = 9
-def getMediaInfo(page):
+
+mpp = 9  # media per page
+
+
+def getDirInfo(parent, page):
     info = []
-    if page*mediaperpage >= len(media):
+    if ".." in parent:  # no backtracking
         return []
-    for i in list(media.keys())[mediaperpage*page:min(mediaperpage*(1+page), len(media)-1)]:
-        filename1, filetype1 = os.path.splitext(media[i])
-        filename = os.path.basename(filename1)
-        filetype = filetype1[1:].lower()
 
-        if os.path.isdir(filename):
-            info.append((i, filename, "dir"))
-        elif filetype in img_:
-            info.append((i, filename, "img"))
-        elif filetype in vid_:
-            info.append((i, filename, "vid", filetype))
+    lst = os.listdir(os.path.join(ROOTDIR, parent))
+
+    if page * mpp >= len(lst):
+        return []
+    #lst = lst[page * mpp:min((page + 1) * mpp, len(lst))]  # select specific parts
+
+    for elem in (os.path.join(ROOTDIR, parent, x) for x in lst):
+        filename = elem[len(ROOTDIR):]
+
+        if os.path.isdir(elem):
+            info.append((os.path.basename(elem), "dir"))
         else:
-            info.append((i, filename, "unk"))
+            filename_, filetype = os.path.splitext(elem)
+            filetype = filetype[1:].lower()
+
+            if filetype in exclude_:
+                continue
+
+            if filetype in img_:
+                info.append((filename, "img"))
+            elif filetype in vid_:
+                info.append((filename, "vid", filetype))
+            else:
+                info.append((filename, "unk"))
     return info
-
-def updateDictionary(files):
-    index = len(media)
-    for i, item in enumerate(files):
-        media[index + i] = item
-        print("[{0}]: {1}".format(index+i, item))
-
-
-def getFilePaths(parentdir, recursive):
-    directory = os.listdir(parentdir)
-    files = []
-    dirs = []
-    for entry in directory:
-        entry1 = os.path.join(parentdir, entry)
-        if os.path.isfile(entry1):
-            fn, fe = os.path.splitext(entry1)
-            if fe[1:].lower() not in exclude_:
-                files.append(entry1)
-        elif os.path.isdir(entry1):
-            dirs.append(entry1)
-
-    if recursive:
-        for dir2 in dirs:
-            for files1 in getFilePaths(dir2, True):
-                files.append(files1)
-
-    return files
