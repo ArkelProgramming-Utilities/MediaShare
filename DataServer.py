@@ -2,30 +2,46 @@ import os
 import base64
 media = dict()
 
-img_ = ["jpg", "png"]
+img_ = ["jpg", "png", "bmp"]
 vid_ = ["mov", "mp4", "mkv"]
-exclude_ = ["lnk", "desktop", "exe"]
+exclude_ = ["lnk", "desktop", "exe", "ini"]
 
 def getMediaPath(id):
     if id not in media:
         return False, ""
     return True, media[id]
 
-mediaperpage = 6
+def getType(filename):
+    filename1, filetype1 = os.path.splitext(filename)
+    filetype = filetype1[1:].lower()
+
+    if os.path.isdir(filename):
+        return "dir"
+    elif filetype in img_:
+        return "img"
+    elif filetype in vid_:
+        return "vid"
+    else:
+        return "unk"
+
+mediaperpage = 9
 def getMediaInfo(page):
     info = []
     if page*mediaperpage >= len(media):
         return []
-    for i in list(media.keys())[mediaperpage*page:mediaperpage*(1+page)]:
+    for i in list(media.keys())[mediaperpage*page:min(mediaperpage*(1+page), len(media)-1)]:
         filename1, filetype1 = os.path.splitext(media[i])
         filename = os.path.basename(filename1)
         filetype = filetype1[1:].lower()
-        if filetype in img_:
-            info.append([i, filename, "img"])
+
+        if os.path.isdir(filename):
+            info.append((i, filename, "dir"))
+        elif filetype in img_:
+            info.append((i, filename, "img"))
         elif filetype in vid_:
-            info.append([i, filename, "vid", filetype])
+            info.append((i, filename, "vid", filetype))
         else:
-            info.append([i, filename, "unk"])
+            info.append((i, filename, "unk"))
     return info
 
 def updateDictionary(files):
