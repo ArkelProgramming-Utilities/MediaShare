@@ -110,10 +110,44 @@ function FetchElements(dir) {
             } else if (type == "vid") {
                 media = document.createElement("video");
                 media.id = "elem_" + index_;
+
+                var myHeaders = new Headers();
+                myHeaders.append("file", name);
+
+                var requestOptions = {
+                    method: 'GET',
+                    headers: myHeaders,
+                    redirect: 'follow'
+                };
+
+                fetch("get-media", requestOptions)
+                    .then(response => response.blob())
+                    .then(function (data) {
+                        let node = document.getElementById("elem_" + index_)
+                        node.src = URL.createObjectURL(data);
+                    });
                 media.setAttribute('controls', '');
-            } else if (type == "unk") {
+            } else if (type == "txt") {
                 media = document.createElement("p");
                 media.id = "elem_" + index_;
+
+                var myHeaders = new Headers();
+                myHeaders.append("file", name);
+                myHeaders.append("size", "36");
+
+                var requestOptions = {
+                    method: 'GET',
+                    headers: myHeaders,
+                    redirect: 'follow'
+                };
+
+                fetch("get-media", requestOptions)
+                    .then(response => response.text())
+                    .then(function (data) {
+                        let node = document.getElementById("elem_" + index_)
+                        node.innerText = data;
+                    });
+
 
             } else if (type == "dir") {
                 media = document.createElement("img")
@@ -131,6 +165,8 @@ function FetchElements(dir) {
                 };
 
 
+            }else{
+                media = document.createElement("div")
             }
 
             media.classList = "media-item";

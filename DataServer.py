@@ -1,11 +1,12 @@
 import os
 import base64
 
-img_ = ["jpg", "png", "bmp"]
+img_ = ["jpg", "png", "bmp", "heic"]
 vid_ = ["mov", "mp4", "mkv"]
+txt_ = ["txt", "json", "xml", "cfg", "dat"]
 exclude_ = ["lnk", "desktop", "exe", "ini"]
-#ROOTDIR = "C:\\Users\\nicho\\Videos"
-ROOTDIR = "F:\\"
+ROOTDIR = "C:\\Users\\nicho\\Videos"
+#ROOTDIR = "F:\\"
 
 def getType(filename):
     filename1, filetype1 = os.path.splitext(filename)
@@ -17,6 +18,8 @@ def getType(filename):
         return "img"
     elif filetype in vid_:
         return "vid"
+    elif filetype in txt_:
+        return "txt"
     else:
         return "unk"
 
@@ -36,21 +39,23 @@ def getDirInfo(parent, page):
     #lst = lst[page * mpp:min((page + 1) * mpp, len(lst))]  # select specific parts
 
     for elem in (os.path.join(ROOTDIR, parent, x) for x in lst):
-        filename = elem[len(ROOTDIR):]
 
         if os.path.isdir(elem):
             info.append((os.path.basename(elem), "dir"))
         else:
             filename_, filetype = os.path.splitext(elem)
             filetype = filetype[1:].lower()
+            filename = elem[len(ROOTDIR)+1:]
 
             if filetype in exclude_:
                 continue
 
             if filetype in img_:
-                info.append((filename, "img"))
+                info.append((filename, "img", filetype))
             elif filetype in vid_:
                 info.append((filename, "vid", filetype))
+            elif filetype in txt_:
+                info.append((filename, "txt", filetype))
             else:
-                info.append((filename, "unk"))
+                info.append((filename, "unk", filetype))
     return info
