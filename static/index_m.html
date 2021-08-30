@@ -4,13 +4,15 @@
 <head>
   <meta charset="utf8">
   <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon">
-  <size style="display: none">100</size>
-  <columns style="display: none">1</columns>
+  <size style="display: none">125</size>
+  <columns style="display: none">2</columns>
   <title>MediaServer</title>
   <style>
-    .grid-container {
+    #mainGrid {
       display: grid;
       padding: 10px;
+      width: 100%;
+      position: absolute;
     }
 
     div{
@@ -24,8 +26,25 @@
     .title-media-item {
       background-color: gray;
       padding: 5px 12px;
-      font-size: 15px;
+      font-size: 24px;
       margin: 0;
+    }
+
+    .label1{
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      font-family: Arial;
+    }
+
+    .text1{
+      width: 100%;
+      font-size: 28px;
+      border-radius: 4px;
+    }
+
+    .button1{
+      font-size: 20px;
     }
 
     .grid-item {
@@ -33,11 +52,34 @@
       overflow: hidden;
       background-color: darkgray;
     }
+
+    #login_grid{
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: gray;
+    }
+
+    #login_form{
+      display: block;
+      width: 40%;
+      left: 30%;
+      position: relative;
+      top: 20%;
+    }
   </style>
 </head>
 
 <body style="margin: 0;">
-  <div id="mainGrid" class="grid-container">
+  <div id="mainGrid">
+  </div>
+  <div id="login_grid">
+    <form id="login_form" action="/auth">
+      <label class="label1" for="password">Password:</label><br>
+      <input class="text1" type="text" id="login_password" name="password" style="width: 100%;"><br>
+      <input class="button1" type="submit" value="Submit">
+      <label id="login_error" class="label1" for="error code"></label><br>
+    </form>
   </div>
 </body>
 <script type="text/javascript" src="static/index.js"></script>

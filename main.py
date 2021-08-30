@@ -126,4 +126,4 @@ if __name__ == '__main__':
     file = open("private.txt", "r")
     savedhash = file.read()
     file.close()
-    app.run(host="0.0.0.0", port=25565, ssl_context=('certificate\\cert.pem', 'certificate\\key.pem'))
+    app.run(host="192.168.1.157", port=25565, ssl_context=('certificate\\cert.pem', 'certificate\\key.pem'))
