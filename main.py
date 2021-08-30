@@ -1,7 +1,7 @@
 import json
 import os
 import numpy as np
-import whatimage
+import hashlib
 from wand.image import Image
 from io import BytesIO
 import os.path
@@ -10,12 +10,12 @@ import flask
 from flask import Flask, send_from_directory, Response
 from werkzeug.wsgi import FileWrapper
 
-from DataServer import getDirInfo, getType, ROOTDIR
+from DataServer import getDirInfo, getType, ROOTDIR, generateToken
 
 app = Flask(__name__)
 
 registry = ["index.html", "index.js", "folder.png", "favicon.ico"]
-
+token = None
 
 @app.route('/')
 def index():
@@ -34,24 +34,61 @@ def filefetch(file):
 
 @app.route('/media-info')
 def dirinfo():
+    token_ = flask.request.cookies.get("auth_token")
+
+    if token_ != token:
+        return json.dumps({
+            "status_code": 2
+        })
+
     page = int(flask.request.headers.get("page", 0))
     parent = flask.request.headers.get("dir", "")
 
-    print(parent)
     data = getDirInfo(parent, page)
     return json.dumps(data)
 
 
+@app.route('/auth', methods=['GET', 'POST'])
+def auth():
+    password = flask.request.form.get("password")
+    hash_ = hashlib.sha1(password.encode())
+
+    if savedhash == hash_.hexdigest():
+        global token
+        token = generateToken(26)
+
+        return json.dumps({
+            "status_code": 0,
+            "auth_token": token
+        })
+
+    return json.dumps({
+        "status_code": 1
+    })
+
+
 @app.route("/get-media")
 def getMedia():
-    file_ = flask.request.headers.get("file", "null")
+    token_ = flask.request.cookies.get("auth_token")
+
+    if token_ != token:
+        return json.dumps({
+            "status_code": 2
+        })
+
+    file_ = flask.request.headers.get("file", None)
     size = int(flask.request.headers.get("size", -1))
 
-    file = os.path.join(ROOTDIR, file_)
+    if not file_:
+        return json.dumps({
+            "status_code": 2
+        })
 
-    type = getType(file)
+    file_ = os.path.join(ROOTDIR, file_)
+
+    type = getType(file_)
     if type == "img":
-        img = Image(filename=file)
+        img = Image(filename=file_)
         img.format = "png"
         img = np.array(img)
 
@@ -61,15 +98,14 @@ def getMedia():
             img = cv2.resize(img, (size, int(size * img.shape[0] / img.shape[1])))
 
         is_success, im_buf_arr = cv2.imencode(".png", img)
-        print(is_success)
         bytes_out = im_buf_arr.tobytes()
 
         b = BytesIO(bytes_out)
         w = FileWrapper(b)
-        return Response(w, mimetype="text/plain", direct_passthrough=True)
+        return Response(w, direct_passthrough=True)
 
     elif type == "txt":
-        file = open(file, "r")
+        file = open(file_, "r")
         w = file.read()
         if size != -1:
             w = w[:min(len(w), size)]
@@ -77,14 +113,17 @@ def getMedia():
 
         return w
     else:
-        file = open(file, "rb")
+        file = open(file_, "rb")
         bytes_out = file.read()
         file.close()
 
         b = BytesIO(bytes_out)
         w = FileWrapper(b)
-        return Response(w, mimetype="text/plain", direct_passthrough=True)
+        return Response(w, direct_passthrough=True)
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=25565)
+    file = open("private.txt", "r")
+    savedhash = file.read()
+    file.close()
+    app.run(host="0.0.0.0", port=25565, ssl_context=('certificate\\cert.pem', 'certificate\\key.pem'))

@@ -8,10 +8,15 @@
   <columns style="display: none">4</columns>
   <title>MediaServer</title>
   <style>
-    .grid-container {
+    #mainGrid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
       padding: 10px;
+      width: -moz-available;
+      position: absolute;
+    }
+
+    div{
+      margin: 0;
     }
 
     .media-item {
@@ -25,16 +30,51 @@
       margin: 0;
     }
 
+    #login_form{
+      display: block;
+      width: 15%;
+      left: 20%;
+      position: relative;
+      top: 20%;
+    }
+
+    .label1{
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      font-family: Arial;
+    }
+
+    .text1{
+      width: 100%;
+      border-radius: 4px;
+      border-color: transparent;
+    }
+
     .grid-item {
       border: 1px solid rgba(0, 0, 0, 0.8);
       overflow: hidden;
       background-color: darkgray;
     }
+
+    #login_grid{
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: gray;
+    }
   </style>
 </head>
 
-<body>
-  <div id="mainGrid" class="grid-container">
+<body style="margin: 0;">
+  <div id="mainGrid"></div>
+  <div id="login_grid">
+    <form id="login_form" action="/auth">
+      <label class="label1" for="password">Password:</label><br>
+      <input class="text1" type="text" id="login_password" name="password" style="width: 100%;"><br>
+      <input type="submit" value="Submit">
+      <label id="login_error" class="label1" for="error code"></label><br>
+    </form>
   </div>
 </body>
 <script type="text/javascript" src="static/index.js"></script>

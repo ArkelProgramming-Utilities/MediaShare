@@ -1,31 +1,20 @@
 var pagenum = 0;
 
-let grid = document.getElementById("mainGrid")
+const grid = document.getElementById("mainGrid")
+const login_form = document.getElementById("login_form");
+const login_grid = document.getElementById("login_grid");
+const login_error = document.getElementById("login_error");
+const login_password = document.getElementById("login_password");
 
-const SIZE = document.getElementsByTagName("size")[0].innerHTML;
-const COLUMN_NUM = document.getElementsByTagName("columns")[0].innerHTML;
 
-grid.style.gridTemplateColumns = "repeat(" + COLUMN_NUM +", 1fr)";
-
-function changepage(val) {
-    pagenum += val;
-    document.getElementById("pagenum").innerText = pagenum;
-    document.getElementById("pagenum1").innerText = pagenum;
-    FetchElements("");
-}
 
 function FetchElements(dir) {
     grid.innerHTML = "";
+    var COLUMN_NUM = document.getElementsByTagName("columns")[0].innerHTML;
+    var SIZE = document.getElementsByTagName("size")[0].innerHTML;
 
-    var myHeaders = new Headers();
-    myHeaders.append("page", "0");
-    myHeaders.append("dir", dir);
+    grid.style.gridTemplateColumns = "repeat(" + COLUMN_NUM + ", 1fr)";
 
-    var requestOptions = {
-        method: 'GET',
-        headers: myHeaders,
-        redirect: 'follow'
-    };
 
     if (dir.length > 0) {
         var grid_item = document.createElement("div");
@@ -39,7 +28,7 @@ function FetchElements(dir) {
         grid_item.onclick = function () {
             dirs = dir.split("\\")
             dirs.pop()
-            
+
             FetchElements(dirs.join("\\"));
         };
 
@@ -54,7 +43,22 @@ function FetchElements(dir) {
         grid.appendChild(grid_item);
     }
 
+    var myHeaders = new Headers();
+    myHeaders.append("page", "0");
+    myHeaders.append("dir", dir);
+
+    var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        credentials: "same-origin",
+        redirect: 'follow'
+    };
+
     fetch("/media-info", requestOptions).then(response => response.json()).then(function (json) {
+        if (json["status_code"] == 2) {
+            login_grid.style.visibility = "visible";
+        }
+
         for (var i = 0; i < json.length; i++) {
 
             var elem = json[i]
@@ -80,6 +84,7 @@ function FetchElements(dir) {
                     var requestOptions = {
                         method: 'GET',
                         headers: myHeaders,
+                        credentials: "same-origin",
                         redirect: 'follow'
                     };
 
@@ -98,6 +103,7 @@ function FetchElements(dir) {
                 var requestOptions = {
                     method: 'GET',
                     headers: myHeaders,
+                    credentials: "same-origin",
                     redirect: 'follow'
                 };
 
@@ -117,6 +123,7 @@ function FetchElements(dir) {
                 var requestOptions = {
                     method: 'GET',
                     headers: myHeaders,
+                    credentials: "same-origin",
                     redirect: 'follow'
                 };
 
@@ -138,6 +145,7 @@ function FetchElements(dir) {
                 var requestOptions = {
                     method: 'GET',
                     headers: myHeaders,
+                    credentials: "same-origin",
                     redirect: 'follow'
                 };
 
@@ -155,9 +163,6 @@ function FetchElements(dir) {
                 media.src = "static/folder.png";
 
                 grid_item.onclick = function () {
-                    console.log("dir=" + dir)
-                    console.log("name=" + name)
-                    console.log("combo=" + dir + "\\" + name)
                     if (dir.length == 0)
                         FetchElements(name);
                     else
@@ -165,7 +170,7 @@ function FetchElements(dir) {
                 };
 
 
-            }else{
+            } else {
                 media = document.createElement("div")
             }
 
@@ -185,3 +190,29 @@ function FetchElements(dir) {
 }
 
 FetchElements("");
+
+login_form.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    var formData = new FormData(login_form);
+
+    var requestOptions = {
+        method: "POST",
+        body: formData,
+        redirect: 'follow'
+    };
+    fetch("/auth", requestOptions)
+        .then(response => response.json())
+        .then(function (data) {
+            code = data["status_code"]
+            if (code == 0) {
+                var token = data["auth_token"];
+                document.cookie = "auth_token=" + token + ";Secure";
+                login_grid.style.visibility = "collapse";
+                FetchElements("");
+            } else if (code == 1) {
+                login_error.innerText = "invalid password";
+                login_password.value = "";
+            }
+        });
+});

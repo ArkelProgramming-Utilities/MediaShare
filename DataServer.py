@@ -1,5 +1,7 @@
 import os
 import base64
+import random
+import string
 
 img_ = ["jpg", "png", "bmp", "heic"]
 vid_ = ["mov", "mp4", "mkv"]
@@ -7,6 +9,11 @@ txt_ = ["txt", "json", "xml", "cfg", "dat"]
 exclude_ = ["lnk", "desktop", "exe", "ini"]
 ROOTDIR = "C:\\Users\\nicho\\Videos"
 #ROOTDIR = "F:\\"
+
+def generateToken(num):
+    token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=num))
+    return token
+
 
 def getType(filename):
     filename1, filetype1 = os.path.splitext(filename)
