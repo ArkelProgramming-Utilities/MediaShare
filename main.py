@@ -6,6 +6,7 @@ from wand.image import Image
 from io import BytesIO
 import os.path
 import cv2
+import hmac
 import flask
 from flask import Flask, send_from_directory, Response
 from werkzeug.wsgi import FileWrapper
@@ -53,7 +54,7 @@ def auth():
     password = flask.request.form.get("password")
     hash_ = hashlib.sha1(password.encode())
 
-    if savedhash == hash_.hexdigest():
+    if hmac.compare_digest(savedhash, hash_.hexdigest()):
         global token
         token = generateToken(26)
 
