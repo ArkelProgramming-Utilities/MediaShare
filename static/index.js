@@ -10,11 +10,7 @@ const login_password = document.getElementById("login_password");
 
 function FetchElements(dir) {
     grid.innerHTML = "";
-    var COLUMN_NUM = document.getElementsByTagName("columns")[0].innerHTML;
     var SIZE = document.getElementsByTagName("size")[0].innerHTML;
-
-    grid.style.gridTemplateColumns = "repeat(" + COLUMN_NUM + ", 1fr)";
-
 
     if (dir.length > 0) {
         var grid_item = document.createElement("div");
@@ -72,7 +68,8 @@ function FetchElements(dir) {
 
 
             var media = null;
-            if (type == "img") {
+            console.log(type)
+            if (type == "img" || type == "imgc") {
                 media = document.createElement("img");
                 media.id = "elem_" + index_;
 
@@ -98,7 +95,7 @@ function FetchElements(dir) {
 
                 var myHeaders = new Headers();
                 myHeaders.append("file", name);
-                myHeaders.append("size", SIZE);
+                myHeaders.append("mod", "p");
 
                 var requestOptions = {
                     method: 'GET',
@@ -113,7 +110,7 @@ function FetchElements(dir) {
                         let node = document.getElementById("elem_" + index_)
                         node.src = URL.createObjectURL(data);
                     });
-            } else if (type == "vid") {
+            } else if (type == "vid" || type == "vidc") {
                 media = document.createElement("video");
                 media.id = "elem_" + index_;
 
@@ -140,7 +137,7 @@ function FetchElements(dir) {
 
                 var myHeaders = new Headers();
                 myHeaders.append("file", name);
-                myHeaders.append("size", "36");
+                myHeaders.append("mod", "p");
 
                 var requestOptions = {
                     method: 'GET',
@@ -179,7 +176,7 @@ function FetchElements(dir) {
 
             var title = document.createElement("h3");
             title.classList = "title-media-item";
-            title.innerText = name;
+            title.innerText = name.split("\\")[name.split("\\").length-1]
 
 
             grid_item.appendChild(media);

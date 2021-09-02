@@ -5,14 +5,14 @@
   <meta charset="utf8">
   <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon">
   <size style="display: none">512</size>
-  <columns style="display: none">4</columns>
   <title>MediaServer</title>
   <style>
     #mainGrid {
       display: grid;
       padding: 10px;
-      width: -moz-available;
+      width: 100%;
       position: absolute;
+      grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
     }
 
     div{

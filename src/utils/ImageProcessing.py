@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from wand.image import Image
 
-from DataServer import ROOTDIR
+from src.DataServer import ROOTDIR
 
 
 def getDirFiles(dir_):
@@ -43,7 +43,7 @@ for file in files:
 
     #print(dat)
 
-    path_ = path.join("dataset", path.basename(file))
+    path_ = path.join("../../dataset", path.basename(file))
     #print(path_)
     cv2.imwrite(path_, img)
 

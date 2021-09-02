@@ -1,0 +1,30 @@
+{
+  "rootdir": "F:\\Media",
+  "image": [
+    "png",
+    "jpg",
+    "bmp",
+    "jpeg"
+  ],
+  "video": [
+    "mp4"
+  ],
+  "image_conv": [
+    "heic"
+  ],
+  "video_conv": [
+    "mov",
+    "mkv"
+  ],
+  "text": [
+    "txt",
+    "json",
+    "cfg",
+    "dat"
+  ],
+  "exclude": [
+    "desktop",
+    "ini",
+    "lnk"
+  ]
+}
