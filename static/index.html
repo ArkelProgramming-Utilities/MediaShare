@@ -4,7 +4,6 @@
 <head>
   <meta charset="utf8">
   <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon">
-  <size style="display: none">512</size>
   <title>MediaServer</title>
   <style>
     #mainGrid {
@@ -54,6 +53,27 @@
       height: 100%;
       background-color: gray;
     }
+    #media_preview{
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(180, 180, 180, 0.2);
+    }
+
+    #media_preview div{
+      left: 3%;
+      top: 3%;
+      width: 94%;
+      height: 94%;
+      overflow: hidden;
+      position: absolute;
+    }
+
+    .preview_elem{
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
 
     #login_form{
       display: block;
@@ -75,6 +95,14 @@
       <input type="submit" value="Submit">
       <label id="login_error" class="label1" for="error code"></label><br>
     </form>
+  </div>
+<div id="media_preview" style="visibility: collapse;" onclick="hidePreview()">
+    <div id="image_preview_p" style="visibility: collapse">
+      <img class="preview_elem" id="image_preview"/>
+    </div>
+  <div id="video_preview_p" style="visibility: collapse">
+    <video class="preview_elem" id="video_preview" controls/>
+  </div>
   </div>
 </body>
 <script type="text/javascript" src="static/index.js"></script>

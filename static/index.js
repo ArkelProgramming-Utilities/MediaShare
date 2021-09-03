@@ -5,12 +5,24 @@ const login_form = document.getElementById("login_form");
 const login_grid = document.getElementById("login_grid");
 const login_error = document.getElementById("login_error");
 const login_password = document.getElementById("login_password");
+const media_preview = document.getElementById("media_preview");
+const image_preview = document.getElementById("image_preview");
+const video_preview = document.getElementById("video_preview");
+const image_preview_p = document.getElementById("image_preview_p");
+const video_preview_p = document.getElementById("video_preview_p");
 
-
+function hidePreview(){
+    media_preview.style.visibility = "collapse";
+    video_preview_p.style.visibility = "collapse";
+    image_preview_p.style.visibility = "collapse";
+    image_preview.src = "";
+    video_preview.src = "";
+}
 
 function FetchElements(dir) {
     grid.innerHTML = "";
-    var SIZE = document.getElementsByTagName("size")[0].innerHTML;
+    var controller = new AbortController();
+    var { signal } = controller;
 
     if (dir.length > 0) {
         var grid_item = document.createElement("div");
@@ -24,7 +36,7 @@ function FetchElements(dir) {
         grid_item.onclick = function () {
             dirs = dir.split("\\")
             dirs.pop()
-
+            controller.abort()
             FetchElements(dirs.join("\\"));
         };
 
@@ -47,12 +59,14 @@ function FetchElements(dir) {
         method: 'GET',
         headers: myHeaders,
         credentials: "same-origin",
-        redirect: 'follow'
+        redirect: 'follow',
+        signal
     };
 
     fetch("/media-info", requestOptions).then(response => response.json()).then(function (json) {
         if (json["status_code"] == 2) {
             login_grid.style.visibility = "visible";
+            grid.style.visibility = "collapse";
         }
 
         for (var i = 0; i < json.length; i++) {
@@ -68,7 +82,6 @@ function FetchElements(dir) {
 
 
             var media = null;
-            console.log(type)
             if (type == "img" || type == "imgc") {
                 media = document.createElement("img");
                 media.id = "elem_" + index_;
@@ -76,20 +89,21 @@ function FetchElements(dir) {
                 grid_item.onclick = function () {
                     var myHeaders = new Headers();
                     myHeaders.append("file", name);
-                    myHeaders.append("size", "-1");
 
                     var requestOptions = {
                         method: 'GET',
                         headers: myHeaders,
                         credentials: "same-origin",
-                        redirect: 'follow'
+                        redirect: 'follow',
+                        signal
                     };
 
                     fetch("get-media", requestOptions)
                         .then(response => response.blob())
                         .then(function (data) {
-                            let node = document.getElementById("elem_" + index_)
-                            node.src = URL.createObjectURL(data);
+                            media_preview.style.visibility = "visible";
+                            image_preview_p.style.visibility = "visible";
+                            image_preview.src = URL.createObjectURL(data);
                         });
                 };
 
@@ -101,7 +115,8 @@ function FetchElements(dir) {
                     method: 'GET',
                     headers: myHeaders,
                     credentials: "same-origin",
-                    redirect: 'follow'
+                    redirect: 'follow',
+                    signal
                 };
 
                 fetch("get-media", requestOptions)
@@ -111,17 +126,40 @@ function FetchElements(dir) {
                         node.src = URL.createObjectURL(data);
                     });
             } else if (type == "vid" || type == "vidc") {
-                media = document.createElement("video");
+                media = document.createElement("img");
                 media.id = "elem_" + index_;
+
+                grid_item.onclick = function () {
+                    var myHeaders = new Headers();
+                    myHeaders.append("file", name);
+
+                    var requestOptions = {
+                        method: 'GET',
+                        headers: myHeaders,
+                        credentials: "same-origin",
+                        redirect: 'follow',
+                        signal
+                    };
+
+                    fetch("get-media", requestOptions)
+                        .then(response => response.blob())
+                        .then(function (data) {
+                            media_preview.style.visibility = "visible";
+                            video_preview_p.style.visibility = "visible";
+                            video_preview.src = URL.createObjectURL(data);
+                        });
+                };
 
                 var myHeaders = new Headers();
                 myHeaders.append("file", name);
+                myHeaders.append("mod", "t");
 
                 var requestOptions = {
                     method: 'GET',
                     headers: myHeaders,
                     credentials: "same-origin",
-                    redirect: 'follow'
+                    redirect: 'follow',
+                    signal
                 };
 
                 fetch("get-media", requestOptions)
@@ -130,7 +168,6 @@ function FetchElements(dir) {
                         let node = document.getElementById("elem_" + index_)
                         node.src = URL.createObjectURL(data);
                     });
-                media.setAttribute('controls', '');
             } else if (type == "txt") {
                 media = document.createElement("p");
                 media.id = "elem_" + index_;
@@ -143,7 +180,8 @@ function FetchElements(dir) {
                     method: 'GET',
                     headers: myHeaders,
                     credentials: "same-origin",
-                    redirect: 'follow'
+                    redirect: 'follow',
+                    signal
                 };
 
                 fetch("get-media", requestOptions)
@@ -160,10 +198,14 @@ function FetchElements(dir) {
                 media.src = "static/folder.png";
 
                 grid_item.onclick = function () {
-                    if (dir.length == 0)
+                    controller.abort()
+                    if (dir.length == 0){
                         FetchElements(name);
+                    }
                     else
+                    {
                         FetchElements(dir + "\\" + name);
+                    }
                 };
 
 
@@ -206,6 +248,7 @@ login_form.addEventListener("submit", function (event) {
                 var token = data["auth_token"];
                 document.cookie = "auth_token=" + token + ";Secure";
                 login_grid.style.visibility = "collapse";
+                grid.style.visibility = "visible";
                 FetchElements("");
             } else if (code == 1) {
                 login_error.innerText = "invalid password";

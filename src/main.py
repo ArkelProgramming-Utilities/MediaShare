@@ -71,15 +71,9 @@ def getMedia():
         })
 
     file_ = flask.request.headers.get("file", None)
-    modifiers = flask.request.headers.get("mod", None)
+    modifiers = flask.request.headers.get("mod", [])
 
-    preview = False
-    if modifiers is not None:
-        mods = modifiers.split("-")
-        if "p" in mods:
-            preview = True
-
-    return sendFile(file_, preview)
+    return sendFile(file_, list(modifiers))
 
 
 if __name__ == '__main__':
@@ -90,5 +84,6 @@ if __name__ == '__main__':
 
     h_name = socket.gethostname()
     ip = socket.gethostbyname(h_name)
-    print(ip)
+    #print("date=")
+    #print(getFileDate("datain\\img.jpg"))
     app.run(host=ip, port=25565, ssl_context=('config\\cert.pem', 'config\\key.pem'))
