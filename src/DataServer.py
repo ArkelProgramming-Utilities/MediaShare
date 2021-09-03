@@ -184,7 +184,7 @@ def getDirInfo(parent):
                     data = json.loads(obj.read())
                     obj.close()
 
-                timestamp = data["creationTime"]["timestamp"]
+                timestamp = data["photoTakenTime"]["timestamp"]
                 dates.append(int(timestamp))
             else:
                 dates.append(0)
