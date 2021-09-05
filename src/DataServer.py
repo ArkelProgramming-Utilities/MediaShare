@@ -15,6 +15,9 @@ import cv2
 import os
 import numpy as np
 from werkzeug.wsgi import FileWrapper
+import timezonefinder, pytz
+
+tf = timezonefinder.TimezoneFinder()
 
 img_ = []
 img_c = []
@@ -117,7 +120,6 @@ def sendFile(file_, mod):
             bytes_out = file.read()
             file.close()
 
-            print("return image")
             b = BytesIO(bytes_out)
             w = FileWrapper(b)
             return Response(w, direct_passthrough=True)
@@ -157,7 +159,40 @@ def getType(filename):
         return "unk"
 
 
+def getFileDate(file):
+    name = os.path.basename(file)
+    file_ = os.path.join(METAINFDIR, name + ".json")
+    if os.path.exists(file_):
+        f = open(file_, "r")
+        data = json.loads(f.read())
+        f.close()
+
+        # utc to local
+        timestamp = int(data["photoTakenTime"]["timestamp"])
+        if int(timestamp) == 0:
+            timestamp = int(data["creationTime"]["timestamp"])
+
+        lat = float(data["geoData"]["latitude"])
+        long = float(data["geoData"]["longitude"])
+        if int(lat) == 0 or int(long) == 0:
+            return 0
+        return turnToLocal(timestamp, lat, long)
+    return 0
+
+
+def turnToLocal(dt, lat, long):
+    zone = tf.certain_timezone_at(lat=lat, lng=-long)
+    local_time = pytz.timezone(zone)
+    t1 = pytz.utc.localize(datetime.datetime.fromtimestamp(dt))
+    t2 = t1.astimezone(local_time)
+
+    if t2.timestamp() < 0:
+        return 0
+    return t2.timestamp()
+
+
 def getDirInfo(parent):
+    dirs = []
     info = []
     dates = []
     if ".." in parent:  # no backtracking
@@ -165,11 +200,10 @@ def getDirInfo(parent):
 
     lst = os.listdir(os.path.join(ROOTDIR, parent))
 
-    for elem in (os.path.join(ROOTDIR, parent, x) for x in lst):
-
+    for elem1 in lst:
+        elem = os.path.join(ROOTDIR, parent, elem1)
         if os.path.isdir(elem):
-            info.append((os.path.basename(elem), "dir"))
-            dates.append(0)
+            dirs.append((os.path.basename(elem), "dir"))
         else:
             filename_, filetype = os.path.splitext(elem)
             filetype = filetype[1:].lower()
@@ -178,20 +212,14 @@ def getDirInfo(parent):
             if filetype in exclude_:
                 continue
 
-            cfgfile = os.path.join(METAINFDIR, os.path.basename(elem) + ".json")
-            if os.path.exists(cfgfile):
-                with open(cfgfile, "r") as obj:
-                    data = json.loads(obj.read())
-                    obj.close()
-
-                timestamp = data["photoTakenTime"]["timestamp"]
-                dates.append(int(timestamp))
+            timestamp = getFileDate(elem)
+            if timestamp != 0:
+                dates.append(timestamp)
             else:
                 dates.append(0)
 
-            info.append((filename, getType(filename), filetype))
+            info.append((filename, getType(filename), timestamp))
 
     info_ = [x for _, x in sorted(zip(dates, info))]
-    if len(info_) != 0:
-        return info_
-    return info
+    dirs.extend(info_)
+    return dirs

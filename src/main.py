@@ -14,9 +14,8 @@ token = None
 
 @app.route('/')
 def index():
-    # print("REQ=" + flask.request.user_agent.string.lower())
-    if "mobile" in flask.request.user_agent.string.lower():
-        return send_from_directory("../static/", "index_m.html")
+    #if "mobile" in flask.request.user_agent.string.lower():
+        #return send_from_directory("../static/", "index_m.html")
     return send_from_directory("../static/", "index.html")
 
 
@@ -84,6 +83,4 @@ if __name__ == '__main__':
 
     h_name = socket.gethostname()
     ip = socket.gethostbyname(h_name)
-    #print("date=")
-    #print(getFileDate("datain\\img.jpg"))
     app.run(host=ip, port=25565, ssl_context=('config\\cert.pem', 'config\\key.pem'))

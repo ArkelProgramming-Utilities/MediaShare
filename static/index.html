@@ -27,6 +27,7 @@
       padding: 5px 12px;
       font-size: 15px;
       margin: 0;
+      word-break: break-all;
     }
 
     .label1{
@@ -57,7 +58,7 @@
       position: fixed;
       width: 100%;
       height: 100%;
-      background-color: rgba(180, 180, 180, 0.2);
+      background-color: rgba(180, 180, 180, 0.5);
     }
 
     #media_preview div{
@@ -67,6 +68,7 @@
       height: 94%;
       overflow: hidden;
       position: absolute;
+      background-color: white;
     }
 
     .preview_elem{
@@ -102,6 +104,9 @@
     </div>
   <div id="video_preview_p" style="visibility: collapse">
     <video class="preview_elem" id="video_preview" controls/>
+  </div>
+  <div id="text_preview_p" style="visibility: collapse">
+    <p class="preview_elem" id="text_preview"/>
   </div>
   </div>
 </body>
