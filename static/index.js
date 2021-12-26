@@ -301,3 +301,16 @@ login_form.addEventListener("submit", function (event) {
             }
         });
 });
+
+media_preview.addEventListener('click',function (e) {
+    e.stopPropagation();
+    hidePreview();
+});
+image_preview.addEventListener('click',function (e) {
+    e.stopPropagation();
+    console.log("clicked image");
+});
+text_preview.addEventListener('click',function (e) {
+    e.stopPropagation();
+    console.log("clicked text");
+});
