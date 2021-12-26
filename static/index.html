@@ -14,7 +14,7 @@
       grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
     }
 
-    div{
+    div {
       margin: 0;
     }
 
@@ -30,14 +30,14 @@
       word-break: break-all;
     }
 
-    .label1{
+    .label1 {
       color: white;
       font-size: 18px;
       font-weight: bold;
       font-family: Arial;
     }
 
-    .text1{
+    .text1 {
       width: 100%;
       border-radius: 4px;
     }
@@ -48,20 +48,21 @@
       background-color: darkgray;
     }
 
-    #login_grid{
+    #login_grid {
       position: absolute;
       width: 100%;
       height: 100%;
       background-color: gray;
     }
-    #media_preview{
+
+    #media_preview {
       position: fixed;
       width: 100%;
       height: 100%;
       background-color: rgba(180, 180, 180, 0.5);
     }
 
-    #media_preview div{
+    #mediagrid {
       left: 5%;
       top: 7%;
       width: 90%;
@@ -69,17 +70,20 @@
       overflow: hidden;
       position: absolute;
       background-color: white;
+      display: grid;
+      grid-template-columns: 1fr 8fr 1fr;
     }
 
-    .preview_elem{
-      width: 84%;
+    .preview_elem {
+      width: 100%;
       height: 100%;
-      left: 8%;
       position: relative;
       object-fit: contain;
+      display: table;
+      margin: 0 auto;
     }
 
-    #login_form{
+    #login_form {
       display: block;
       width: 15%;
       left: 20%;
@@ -87,6 +91,14 @@
       top: 20%;
     }
 
+    .navbtn{
+      background-color: red;
+    }
+    #mediapanel div{
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 
@@ -100,16 +112,23 @@
       <label id="login_error" class="label1" for="error code"></label><br>
     </form>
   </div>
-<div id="media_preview" style="visibility: collapse;">
-    <div id="image_preview_p" style="visibility: collapsed">
-      <img class="preview_elem" id="image_preview"/>
+  <div id="media_preview" style="visibility: hidden;">
+    <div id="mediagrid">
+      <div id="navleft" style="grid-column-start: 1;" class="navbtn"></div>
+      <div id="mediapanel" style="width: 100%;position: relative;">
+        <div id="image_preview_p" style="visibility: collapse;">
+          <img class="preview_elem" id="image_preview" src="">
+        </div>
+        <div id="video_preview_p" style="visibility: collapse;">
+          <video class="preview_elem" id="video_preview" controls="">
+          </video>
+        </div>
+        <div id="text_preview_p" style="visibility: collapse;">
+          <p class="preview_elem" id="text_preview"></p>
+        </div>
+      </div>
+      <div id="navright" style="grid-column-start: 3;" class="navbtn"></div>
     </div>
-  <div id="video_preview_p" style="visibility: collapse">
-    <video class="preview_elem" id="video_preview" controls/>
-  </div>
-  <div id="text_preview_p" style="visibility: collapse">
-    <p class="preview_elem" id="text_preview"/>
-  </div>
   </div>
 </body>
 <script type="text/javascript" src="static/index.js"></script>

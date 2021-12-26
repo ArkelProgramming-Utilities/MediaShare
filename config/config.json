@@ -1,6 +1,7 @@
 {
   "rootdir": "E:\\Games",
   "metainf": "E:\\meta",
+  "metainf_backup":"E:\\meta\\artificial",
   "image": [
     "png",
     "jpg",

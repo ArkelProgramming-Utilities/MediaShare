@@ -1,17 +1,19 @@
 var pagenum = 0;
 
-const grid = document.getElementById("mainGrid")
-const login_form = document.getElementById("login_form");
-const login_grid = document.getElementById("login_grid");
-const login_error = document.getElementById("login_error");
-const login_password = document.getElementById("login_password");
-const media_preview = document.getElementById("media_preview");
-const image_preview = document.getElementById("image_preview");
-const video_preview = document.getElementById("video_preview");
-const text_preview = document.getElementById("text_preview");
-const image_preview_p = document.getElementById("image_preview_p");
-const video_preview_p = document.getElementById("video_preview_p");
-const text_preview_p = document.getElementById("text_preview_p");
+let grid = document.getElementById("mainGrid")
+let login_form = document.getElementById("login_form");
+let login_grid = document.getElementById("login_grid");
+let login_error = document.getElementById("login_error");
+let login_password = document.getElementById("login_password");
+let media_preview = document.getElementById("media_preview");
+let image_preview = document.getElementById("image_preview");
+let video_preview = document.getElementById("video_preview");
+let text_preview = document.getElementById("text_preview");
+let image_preview_p = document.getElementById("image_preview_p");
+let video_preview_p = document.getElementById("video_preview_p");
+let text_preview_p = document.getElementById("text_preview_p");
+let navleft = document.getElementById("navleft");
+let navright = document.getElementById("navright");
 
 function hidePreview() {
     media_preview.style.visibility = "collapse";
@@ -82,7 +84,7 @@ function FetchElements(dir) {
             if (elem.length >2){
                 var raw_timestamp = parseInt(elem[2])
             }else{
-                var raw_timestamp = 0;
+                var raw_timestamp = -1;
             }
             const index_ = i;
 
@@ -258,7 +260,7 @@ function FetchElements(dir) {
             title.innerText = name.split("\\")[name.split("\\").length - 1]
             grid_item.appendChild(title);
 
-            if(raw_timestamp!=0){
+            if(raw_timestamp!=-1){
                 var date = document.createElement("h3");
                 date.classList = "title-media-item";
 
@@ -303,9 +305,9 @@ login_form.addEventListener("submit", function (event) {
 });
 
 media_preview.addEventListener('click',function (e) {
-    e.stopPropagation();
     hidePreview();
 });
+
 image_preview.addEventListener('click',function (e) {
     e.stopPropagation();
     console.log("clicked image");
@@ -313,4 +315,18 @@ image_preview.addEventListener('click',function (e) {
 text_preview.addEventListener('click',function (e) {
     e.stopPropagation();
     console.log("clicked text");
+});
+video_preview.addEventListener('click',function (e) {
+    e.stopPropagation();
+    console.log("clicked video");
+});
+
+navleft.addEventListener('click',function (e) {
+    e.stopPropagation();
+    console.log("clicked left");
+});
+
+navright.addEventListener('click',function (e) {
+    e.stopPropagation();
+    console.log("clicked right");
 });

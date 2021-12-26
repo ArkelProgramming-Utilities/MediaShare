@@ -28,6 +28,7 @@ exclude_ = []
 
 ROOTDIR = ""
 METAINFDIR = ""
+METAINF_BACKUPDIR = ""
 
 
 def loadConfig():
@@ -43,9 +44,11 @@ def loadConfig():
     global exclude_
     global ROOTDIR
     global METAINFDIR
+    global METAINF_BACKUPDIR
 
     ROOTDIR = data["rootdir"]
     METAINFDIR = data["metainf"]
+    METAINF_BACKUPDIR = data["metainf_backup"]
     img_ = data["image"]
     vid_ = data["video"]
     txt_ = data["text"]
@@ -159,25 +162,27 @@ def getType(filename):
         return "unk"
 
 
+
 def getFileDate(file):
-    name = os.path.basename(file)
-    file_ = os.path.join(METAINFDIR, name + ".json")
-    if os.path.exists(file_):
-        f = open(file_, "r")
-        data = json.loads(f.read())
-        f.close()
+    for dir1 in [METAINFDIR,METAINF_BACKUPDIR]:
+        name = os.path.basename(file)
+        file_ = os.path.join(dir1, name + ".json")
+        if os.path.exists(file_):
+            f = open(file_, "r")
+            data = json.loads(f.read())
+            f.close()
 
-        # utc to local
-        timestamp = int(data["photoTakenTime"]["timestamp"])
-        if int(timestamp) == 0:
-            timestamp = int(data["creationTime"]["timestamp"])
+            # utc to local
+            timestamp = int(data["photoTakenTime"]["timestamp"])
+            if int(timestamp) == 0:
+                timestamp = int(data["creationTime"]["timestamp"])
 
-        lat = float(data["geoData"]["latitude"])
-        long = float(data["geoData"]["longitude"])
-        if int(lat) == 0 or int(long) == 0:
-            return 0
-        return turnToLocal(timestamp, lat, long)
-    return 0
+            lat = float(data["geoData"]["latitude"])
+            long = float(data["geoData"]["longitude"])
+            if int(lat) == 0 or int(long) == 0 or timestamp==0:
+                continue
+            return turnToLocal(timestamp, lat, long)
+    return -1
 
 
 def turnToLocal(dt, lat, long):
@@ -213,10 +218,11 @@ def getDirInfo(parent):
                 continue
 
             timestamp = getFileDate(elem)
-            if timestamp != 0:
+            
+            if timestamp != -1:
                 dates.append(timestamp)
             else:
-                dates.append(0)
+                dates.append(-1)
 
             info.append((filename, getType(filename), timestamp))
 
