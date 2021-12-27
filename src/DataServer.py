@@ -186,8 +186,9 @@ def turnToLocal(dt, tz1):
         return 0
     return t2.timestamp()
 
+itemsperpage = 50
 
-def getDirInfo(parent):
+def getDirInfo(parent, page):
     dirs = []
     info = []
     dates = []
@@ -217,4 +218,5 @@ def getDirInfo(parent):
     info_ = [x for _, x in sorted(zip(dates, info))]
     info_.reverse()
     dirs.extend(info_)
-    return dirs
+    outp = dirs[page*itemsperpage:min((page+1)*itemsperpage,len(dirs))]
+    return outp

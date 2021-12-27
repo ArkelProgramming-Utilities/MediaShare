@@ -8,7 +8,7 @@ from DataServer import getDirInfo, generateToken, sendFile
 
 app = Flask(__name__)
 
-registry = ["index.html", "index.js", "folder.png", "favicon.ico"]
+registry = ["index.html", "index.js", "folder.png", "favicon.ico", "forwards.png", "backwards.png"]
 token = None
 
 
@@ -36,8 +36,9 @@ def dirinfo():
         })
 
     parent = flask.request.headers.get("dir", "")
+    page = int(flask.request.headers.get("page", ""))
 
-    data = getDirInfo(parent)
+    data = getDirInfo(parent, page)
     return json.dumps(data)
 
 

@@ -77,12 +77,30 @@ function showPreview(index) {
     return true;
 }
 
-
+const months = {
+    1:"January",
+    2:"February",
+    3:"March",
+    4:"April",
+    5:"May",
+    6:"June",
+    7:"July",
+    8:"August",
+    9:"September",
+    10:"October",
+    11:"November",
+    12:"December"};
+    
 var media_index = -1;
 var media_data = [];
+var page = 0;
+var controller = null;
 function FetchElements(dir) {
     grid.innerHTML = "";
-    var controller = new AbortController();
+    
+    if(controller!=null)
+        controller.abort();
+    controller = new AbortController();
     var { signal } = controller;
 
     if (dir.length > 0) {
@@ -95,9 +113,9 @@ function FetchElements(dir) {
         media.src = "static/folder.png";
 
         grid_item.onclick = function () {
+            page = 0;
             dirs = dir.split("\\")
             dirs.pop()
-            controller.abort()
             FetchElements(dirs.join("\\"));
         };
 
@@ -113,7 +131,7 @@ function FetchElements(dir) {
     }
 
     var myHeaders = new Headers();
-    myHeaders.append("page", "0");
+    myHeaders.append("page", page);
     myHeaders.append("dir", dir);
 
     var requestOptions = {
@@ -135,6 +153,21 @@ function FetchElements(dir) {
             media_data.push(json[i]);
         }
 
+        if(page>0){
+        var grid_item1 = document.createElement("div");
+        grid_item1.classList = "grid-item";
+        prevpage = document.createElement("img")
+        prevpage.style.backgroundcolor = "gray";
+        prevpage.src = "static/backwards.png";
+        prevpage.classList = "media-item";
+        grid_item1.appendChild(prevpage);
+        prevpage.onclick = function () {
+            page--;
+            FetchElements(dir);
+        };
+        grid.appendChild(grid_item1);
+    }
+
         for (var i = 0; i < json.length; i++) {
 
             var elem = media_data[i]
@@ -150,9 +183,9 @@ function FetchElements(dir) {
             }
             const index_ = i;
 
-
+ 
             const dateObject = new Date(raw_timestamp * 1000);
-            const humanDateFormat = dateObject.toLocaleString();
+            const humanDateFormat = months[dateObject.getMonth()] + " " + dateObject.getDate() + ", " + dateObject.getFullYear();
 
             var grid_item = document.createElement("div");
             grid_item.classList = "grid-item";
@@ -253,7 +286,7 @@ function FetchElements(dir) {
                 media.src = "static/folder.png";
 
                 grid_item.onclick = function () {
-                    controller.abort()
+                    page = 0;
                     if (dir.length == 0) {
                         FetchElements(file);
                     }
@@ -278,14 +311,6 @@ function FetchElements(dir) {
                 title.innerText = name_;
             grid_item.appendChild(title);
 
-            if (name_ != 0) {
-                var title2 = document.createElement("h6");
-                title2.classList = "title-media-item";
-
-                title2.innerText = file.split("\\")[file.split("\\").length - 1];
-                title2.style.color = "RED";
-                grid_item.appendChild(title2);
-            }
 
             if (raw_timestamp != -1) {
                 var date = document.createElement("h3");
@@ -295,11 +320,31 @@ function FetchElements(dir) {
                 grid_item.appendChild(date);
             }
 
+            if (name_ != 0) {
+                var title2 = document.createElement("h6");
+                title2.classList = "title-media-item";
 
+                title2.innerText = file.split("\\")[file.split("\\").length - 1];
+                title2.style.color = "RED";
+                grid_item.appendChild(title2);
+            }
+            
 
             grid.appendChild(grid_item);
         }
+        var grid_item2 = document.createElement("div");
+        grid_item2.classList = "grid-item";
+        nextpage = document.createElement("img")
+        nextpage.src = "static/forwards.png";
+        nextpage.classList = "media-item";
+        nextpage.onclick = function () {
+            page++;
+            FetchElements(dir);
+        };
+        grid_item2.appendChild(nextpage);
+        grid.appendChild(grid_item2);
     });
+
 }
 
 FetchElements("");
