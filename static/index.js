@@ -25,6 +25,61 @@ function hidePreview() {
     text_preview.innerText = ""
 }
 
+var controller2 = null;
+
+function showPreview(index) {
+    if(index<0||index>=media_data.length)
+        return false;
+
+    if(controller2!=null)
+        controller2.abort();
+    controller2 = new AbortController();
+    var { signal2 } = controller2;
+
+    file = media_data[index][0];
+    type = media_data[index][1];
+
+    hidePreview();
+    var myHeaders = new Headers();
+    myHeaders.append("file", file);
+    
+    var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        credentials: "same-origin",
+        redirect: 'follow',
+        signal2
+    };
+    media_preview.style.visibility = "visible";
+    if (type == "img" || type == "imgc") {
+        fetch("get-media", requestOptions)
+            .then(response => response.blob())
+            .then(function (data) {
+
+                image_preview_p.style.visibility = "visible";
+                image_preview.src = URL.createObjectURL(data);
+            });
+    } else if (type == "vid" || type == "vidc") {
+        fetch("get-media", requestOptions)
+            .then(response => response.blob())
+            .then(function (data) {
+                video_preview_p.style.visibility = "visible";
+                video_preview.src = URL.createObjectURL(data);
+            });
+    } else if (type == "txt") {
+        fetch("get-media", requestOptions)
+            .then(response => response.text())
+            .then(function (data) {
+                text_preview_p.style.visibility = "visible";
+                text_preview.innerText = data;
+            });
+    }
+    return true;
+}
+
+
+var media_index = -1;
+var media_data = [];
 function FetchElements(dir) {
     grid.innerHTML = "";
     var controller = new AbortController();
@@ -75,17 +130,22 @@ function FetchElements(dir) {
             grid.style.visibility = "collapse";
         }
 
+        media_data = [];
+        for(var i = 0;i<json.length;i++){
+            media_data.push(json[i]);
+        }
+
         for (var i = 0; i < json.length; i++) {
 
-            var elem = json[i]
+            var elem = media_data[i]
+
             const file = elem[0]
             const type = elem[1]
             var name_ = 0;
-            console.log(elem.length)
-            if (elem.length >2){
+            if (elem.length > 2) {
                 name_ = elem[2]
                 var raw_timestamp = parseInt(elem[3])
-            }else{
+            } else {
                 var raw_timestamp = -1;
             }
             const index_ = i;
@@ -105,24 +165,9 @@ function FetchElements(dir) {
                 media.id = "elem_" + index_;
 
                 grid_item.onclick = function () {
-                    var myHeaders = new Headers();
-                    myHeaders.append("file", file);
-
-                    var requestOptions = {
-                        method: 'GET',
-                        headers: myHeaders,
-                        credentials: "same-origin",
-                        redirect: 'follow',
-                        signal
-                    };
-                    media_preview.style.visibility = "visible";
-                    fetch("get-media", requestOptions)
-                        .then(response => response.blob())
-                        .then(function (data) {
-
-                            image_preview_p.style.visibility = "visible";
-                            image_preview.src = URL.createObjectURL(data);
-                        });
+                    media_index = index_;
+                    
+                    showPreview(index_);
                 };
 
                 var myHeaders = new Headers();
@@ -148,25 +193,9 @@ function FetchElements(dir) {
                 media.id = "elem_" + index_;
 
                 grid_item.onclick = function () {
-                    var myHeaders = new Headers();
-                    myHeaders.append("file", file);
-
-                    var requestOptions = {
-                        method: 'GET',
-                        headers: myHeaders,
-                        credentials: "same-origin",
-                        redirect: 'follow',
-                        signal
-                    };
-
-                    media_preview.style.visibility = "visible";
-
-                    fetch("get-media", requestOptions)
-                        .then(response => response.blob())
-                        .then(function (data) {
-                            video_preview_p.style.visibility = "visible";
-                            video_preview.src = URL.createObjectURL(data);
-                        });
+                    media_index = index_;
+                    
+                    showPreview(index_);
                 };
 
                 var myHeaders = new Headers();
@@ -192,25 +221,9 @@ function FetchElements(dir) {
                 media.id = "elem_" + index_;
 
                 grid_item.onclick = function () {
-                    var myHeaders = new Headers();
-                    myHeaders.append("file", file);
-
-                    var requestOptions = {
-                        method: 'GET',
-                        headers: myHeaders,
-                        credentials: "same-origin",
-                        redirect: 'follow',
-                        signal
-                    };
-
-                    media_preview.style.visibility = "visible";
-
-                    fetch("get-media", requestOptions)
-                        .then(response => response.text())
-                        .then(function (data) {
-                            text_preview_p.style.visibility = "visible";
-                            text_preview.innerText = data;
-                        });
+                    media_index = index_;
+                    
+                    showPreview(index_);
                 };
 
 
@@ -259,28 +272,28 @@ function FetchElements(dir) {
 
             var title = document.createElement("h3");
             title.classList = "title-media-item";
-            if(name_==0)
+            if (name_ == 0)
                 title.innerText = file.split("\\")[file.split("\\").length - 1];
             else
                 title.innerText = name_;
             grid_item.appendChild(title);
 
-            if(name_!=0){
-            var title2 = document.createElement("h6");
-            title2.classList = "title-media-item";
-            
+            if (name_ != 0) {
+                var title2 = document.createElement("h6");
+                title2.classList = "title-media-item";
+
                 title2.innerText = file.split("\\")[file.split("\\").length - 1];
                 title2.style.color = "RED";
-            grid_item.appendChild(title2);
+                grid_item.appendChild(title2);
             }
 
-            if(raw_timestamp!=-1){
+            if (raw_timestamp != -1) {
                 var date = document.createElement("h3");
                 date.classList = "title-media-item";
 
                 date.innerText = humanDateFormat;
                 grid_item.appendChild(date);
-                }
+            }
 
 
 
@@ -318,29 +331,37 @@ login_form.addEventListener("submit", function (event) {
         });
 });
 
-media_preview.addEventListener('click',function (e) {
+media_preview.addEventListener('click', function (e) {
     hidePreview();
 });
 
-image_preview.addEventListener('click',function (e) {
+image_preview.addEventListener('click', function (e) {
     e.stopPropagation();
     console.log("clicked image");
 });
-text_preview.addEventListener('click',function (e) {
+text_preview.addEventListener('click', function (e) {
     e.stopPropagation();
     console.log("clicked text");
 });
-video_preview.addEventListener('click',function (e) {
+video_preview.addEventListener('click', function (e) {
     e.stopPropagation();
     console.log("clicked video");
 });
 
-navleft.addEventListener('click',function (e) {
+navleft.addEventListener('click', function (e) {
     e.stopPropagation();
+    media_index--;
+    var ret = showPreview(media_index);
+    if(ret==false)
+        media_index++;
     console.log("clicked left");
 });
 
-navright.addEventListener('click',function (e) {
+navright.addEventListener('click', function (e) {
     e.stopPropagation();
+    media_index++;
+    var ret = showPreview(media_index);
+    if(ret==false)
+        media_index--;
     console.log("clicked right");
 });

@@ -83,4 +83,4 @@ if __name__ == '__main__':
 
     h_name = socket.gethostname()
     ip = socket.gethostbyname(h_name)
-    app.run(host=ip, port=25565, ssl_context=('config\\cert.pem', 'config\\key.pem'))
+    app.run(host=ip, port=5000) #ssl_context=('config\\cert.pem', 'config\\key.pem')

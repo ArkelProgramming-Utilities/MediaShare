@@ -31,7 +31,7 @@ METAINFDIR = ""
 
 
 def loadConfig():
-    file = open("config/config.json", "r")
+    file = open("config/config-mac.json", "r")
     data = json.loads(file.read())
     file.close()
 
