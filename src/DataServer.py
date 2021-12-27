@@ -28,7 +28,6 @@ exclude_ = []
 
 ROOTDIR = ""
 METAINFDIR = ""
-METAINF_BACKUPDIR = ""
 
 
 def loadConfig():
@@ -44,11 +43,9 @@ def loadConfig():
     global exclude_
     global ROOTDIR
     global METAINFDIR
-    global METAINF_BACKUPDIR
 
     ROOTDIR = data["rootdir"]
     METAINFDIR = data["metainf"]
-    METAINF_BACKUPDIR = data["metainf_backup"]
     img_ = data["image"]
     vid_ = data["video"]
     txt_ = data["text"]
@@ -163,31 +160,25 @@ def getType(filename):
 
 
 
-def getFileDate(file):
-    for dir1 in [METAINFDIR,METAINF_BACKUPDIR]:
-        name = os.path.basename(file)
-        file_ = os.path.join(dir1, name + ".json")
-        if os.path.exists(file_):
-            f = open(file_, "r")
-            data = json.loads(f.read())
-            f.close()
+def getFileInfo(file):
+    try:
+        file_ = os.path.join(METAINFDIR, os.path.splitext(os.path.basename(file))[0] + ".json")
+        f = open(file_, "r")
+        data = json.loads(f.read())
+        f.close()
 
-            # utc to local
-            timestamp = int(data["photoTakenTime"]["timestamp"])
-            if int(timestamp) == 0:
-                timestamp = int(data["creationTime"]["timestamp"])
+        # utc to local
+        timestamp = int(data["creationTime"]["timestamp"])
+        name = data["title"]
+        if timestamp!=-1:
+            timestamp = turnToLocal(timestamp, data["localtimezone"])
 
-            lat = float(data["geoData"]["latitude"])
-            long = float(data["geoData"]["longitude"])
-            if int(lat) == 0 or int(long) == 0 or timestamp==0:
-                continue
-            return turnToLocal(timestamp, lat, long)
-    return -1
-
-
-def turnToLocal(dt, lat, long):
-    zone = tf.certain_timezone_at(lat=lat, lng=-long)
-    local_time = pytz.timezone(zone)
+        return timestamp, name
+    except:
+        return -1, os.path.splitext(os.path.basename(file))[0]
+    
+def turnToLocal(dt, tz1):
+    local_time = pytz.timezone("US/Pacific")
     t1 = pytz.utc.localize(datetime.datetime.fromtimestamp(dt))
     t2 = t1.astimezone(local_time)
 
@@ -217,15 +208,13 @@ def getDirInfo(parent):
             if filetype in exclude_:
                 continue
 
-            timestamp = getFileDate(elem)
+            timestamp, name1 = getFileInfo(elem)
             
-            if timestamp != -1:
-                dates.append(timestamp)
-            else:
-                dates.append(-1)
+            dates.append(timestamp)
 
-            info.append((filename, getType(filename), timestamp))
-
+            info.append((filename, getType(filename), name1, timestamp))
+            
     info_ = [x for _, x in sorted(zip(dates, info))]
+    info_.reverse()
     dirs.extend(info_)
     return dirs

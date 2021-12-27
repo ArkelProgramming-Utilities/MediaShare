@@ -1,12 +1,13 @@
 import json
-import random
-import subprocess
 import os.path as path
 import os
 import datetime
 import multiprocessing as mp
 import timezonefinder, pytz
 tf = timezonefinder.TimezoneFinder()
+from PIL import Image
+import subprocess
+import os
 
 
 def parseDate(str):
@@ -15,10 +16,10 @@ def parseDate(str):
     except:
         return 0
 
-def turnToUTC(dt, lat, long):
+def turnToUTC(dt):
     #print("dt=" + str(dt))
-    zone = tf.certain_timezone_at(lat=lat, lng=-long)
-    local_time = pytz.timezone(zone)
+    #zone = tf.certain_timezone_at(lat=lat, lng=-long)
+    local_time = pytz.timezone("US/Pacific")
     t1 = local_time.localize(datetime.datetime.fromtimestamp(dt))
     t2 = t1.astimezone(pytz.utc)
 
@@ -29,107 +30,115 @@ def turnToUTC(dt, lat, long):
 def getFileMetadata(filein):
     process = subprocess.Popen(["hachoir-metadata", filein], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                universal_newlines=True)
-    NAME = ".".join(path.basename(filein).split(".")[:2])
+    NAME = ".".join(filein.split("\\")[-1].split(".")[:-1])
 
-    PTT = 0
-    CTT = 0
-    LAT = 0
-    LONG = 0
-    ALT = 0
+    CDT = -1
+    MDT = -1
 
-    didsomething = False
-
-    log = []
     for output in process.stdout:
-        # print(output)
+        #print(output)
 
         if ":" not in output:
             continue
         #print("output=" + output)
         val = output[output.index(":") + 1:].strip()
         key = output[:output.index(":")][2:]
-        log.append(output + "   KEY=" + key + "|VAL=" +val)
+        
         if "Unable to parse file" in output:
             break
-        if key == "Date-time digitized":
-            PTT = parseDate(val)
-            didsomething = True
         if key == "Creation date":
-            CTT = parseDate(val)
-            didsomething = True
-        if key == "Latitude":
-            LAT = float(val)
-            didsomething = True
-        if key == "Longitude":
-            LONG = float(val)
-            didsomething = True
-        if key == "Altitude":
-            ALT = float(val[:-len(" meters")])
-            didsomething = True
+            CDT = parseDate(val)
+        if key == "Last modification":
+            MDT = parseDate(val)
 
-    if not didsomething:
+    if CDT ==-1 and MDT==-1:
         return None
 
-    if not LAT or not LONG:
-        return None
-
-    if CTT ==0 and PTT == 0:
-        print("------------------------------")
-        for l in log:
-            print(l)
-        print("------------------------------")
-        return None
-
-    print("val=" + str(CTT) + ":" + str(PTT) + " lat=" + str(LAT) + " long=" + str(LONG))
-    CTT = turnToUTC(CTT, LAT, LONG)
-    PTT = turnToUTC(PTT, LAT, LONG)
-    print("val2=" + str(CTT) + ":" + str(PTT))
-
-    data = json.dumps({
+    FDT = min(CDT,MDT)
+    try:
+        data = json.dumps({
         "title": NAME,
         "description": "",
+        "localtimezone":"PST",
         "creationTime": {
-            "timestamp": CTT,
-            "formatted": datetime.datetime.fromtimestamp(CTT).strftime("%b %d, %Y, %I:%M:%S %p UTC")
-        },
-        "photoTakenTime": {
-            "timestamp": PTT,
-            "formatted": datetime.datetime.fromtimestamp(PTT).strftime("%b %d, %Y, %I:%M:%S %p UTC")
-        },
-        "geoData": {
-            "latitude": LAT,
-            "longitude": LONG,
-            "altitude": ALT,
-            "latitudeSpan": 0.0,
-            "longitudeSpan": 0.0
-        },
-        "geoDataExif": {
-            "latitude": "n/a",
-            "longitude": "n/a",
-            "altitude": "n/a",
-            "latitudeSpan": 0.0,
-            "longitudeSpan": 0.0
-        },
-        "googlePhotosOrigin": {
-            "mobileUpload": {
-                "deviceType": "localconv"
-            }
+            "timestamp": int(FDT),
+            "formatted": datetime.datetime.fromtimestamp(FDT).strftime("%b %d, %Y %H:%M:%S UTC")
         }
-    })
+        })
+    except:
+        return None
     return data
 
-
-def deleteBadMeta(file):
-    try:
-        f = open(file, "r")
-        data = json.loads(f.read())
-        f.close()
-
-        if data["googlePhotosOrigin"]["mobileUpload"]["deviceType"] == "localconv":
-            os.remove(file, True)
-            print("removed")
-    except:
-        None
+def parseFileName(file):
+    NAME = ".".join(file.split("\\")[-1].split(".")[:-1])
+    timestamp = -1
+    
+    if timestamp==-1:
+        try:
+            #"ArmA 3 2021.11.25 - 18.07.09.04.DVR"
+            date = NAME.split(" ")[-3:]
+            datestr = "".join(date)[:-7]
+            timestamp = turnToUTC(datetime.datetime.strptime(datestr, "%Y.%m.%d-%H.%M.%S").timestamp())
+        except:
+            None
+    if timestamp==-1:
+        try:
+            #"Arma 3 5_7_2021 2_07_52 PM"
+            date = NAME.split(" ")[-3:]
+            datestr = "-".join(date)
+            timestamp = turnToUTC(datetime.datetime.strptime(datestr, "%m_%d_%Y-%I_%M_%S-%p").timestamp())
+        except:
+            None
+            
+    if timestamp==-1:
+        try:
+            #"Tom Clancy_s The Division 2 2020.03.06 - 18.31."
+            date = NAME.split(" ")[-3:]
+            datestr = "".join(date)[:-1]
+            timestamp = turnToUTC(datetime.datetime.strptime(datestr, "%Y.%m.%d-%H.%M").timestamp())
+        except:
+            None
+    
+    if timestamp==-1:
+        try:
+            #"Space Engineers Screenshot 2019.06.07 - 19.45.0"
+            date = NAME.split(" ")[-3:]
+            datestr = "".join(date)
+            timestamp = turnToUTC(datetime.datetime.strptime(datestr, "%Y.%m.%d-%H.%M.%S").timestamp())
+        except:
+            None
+    
+    if timestamp==-1:
+        try:
+            #"Space Engineers Screenshot 2019.06.07 - 19.45.0.52"
+            date = NAME.split(" ")[-3:]
+            datestr = "".join(date)[:-3]
+            timestamp = turnToUTC(datetime.datetime.strptime(datestr, "%Y.%m.%d-%H.%M.%S").timestamp())
+        except:
+            None
+    
+    if timestamp==-1:
+        try:
+            #"Replay 2020-02-16 17-45-54"
+            date = NAME.split(" ")[-2:]
+            datestr = "-".join(date)
+            timestamp = turnToUTC(datetime.datetime.strptime(datestr, "%Y-%m-%d-%H-%M-%S").timestamp())
+        except:
+            None
+    
+    if timestamp==-1:
+        return None
+    
+    data = json.dumps({
+    "title": NAME,
+    "description": "",
+    "localtimezone":"PST",
+    "creationTime": {
+        "timestamp": int(timestamp),
+        "formatted": datetime.datetime.fromtimestamp(timestamp).strftime("%b %d, %Y %H:%M:%S UTC")
+    }
+    })
+    return data
 
 
 def getFiles(dir):
@@ -144,15 +153,12 @@ def getFiles(dir):
 
     return files_
 
-
-def func_2(file):
-    deleteBadMeta(file)
     # print("found" + str(random.random()*3)[:2])
 
 
 def func_(file):
     exists = "exists"
-    p = path.join("F:\\meta\\artificial", path.basename(file) + ".json")
+    p = path.join("E:\\meta3", path.basename(file) + ".json")
     # print(p)
     if not path.exists(p):
         data = getFileMetadata(file)
@@ -162,12 +168,46 @@ def func_(file):
             f.close()
             exists = "worked"
         else:
-            exists = "broke"
+            data1 = parseFileName(file)
+            if data1:
+                f = open(p, "w")
+                f.write(data1)
+                f.close()
+                exists = "worked"
+            else:
+                exists = "broke"
+                data2 = json.dumps({
+                    "title": ".".join(file.split("\\")[-1].split(".")[:-1]),
+                    "description": "",
+                    "localtimezone":"PST",
+                    "creationTime": {
+                        "timestamp": -1,
+                        "formatted": ""
+                    }
+                    })
+                f = open(p, "w")
+                f.write(data2)
+                f.close()
     print(exists)
 
+def rename_(item):
+    id = item[0]+1000
+    file = item[1]
+    
+    p = path.join("E:\\meta1", path.basename(file) + ".json")
+    p1 = path.join("E:\\meta1", str(id) + ".json")
+    
+    f = os.path.join("\\".join(os.path.splitext(file)[0].split("\\")[:-1]), str(id) + "." + file.split(".")[-1])
+    os.rename(file, f)
+    os.rename(p, p1)
+    
 
 if __name__ == "__main__":
-    files = getFiles("F:\\Media")
+    files = getFiles("E:\\Games")
+    dat = [[x, i] for x, i in enumerate(files)]
+
+    #parseFileName("")
+    #print(getFileMetadata(files))
     # files = os.listdir("F:\\meta")
 
     # files_ = []
@@ -176,5 +216,7 @@ if __name__ == "__main__":
 
     #for file in files:
         #func_(file)
+        
     pool = mp.Pool(mp.cpu_count())
-    result = pool.map(func_, files)
+    result = pool.map(rename_, dat)
+    #result = pool.map(func_, files)

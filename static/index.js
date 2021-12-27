@@ -78,11 +78,13 @@ function FetchElements(dir) {
         for (var i = 0; i < json.length; i++) {
 
             var elem = json[i]
-            const name = elem[0]
+            const file = elem[0]
             const type = elem[1]
+            var name_ = 0;
             console.log(elem.length)
             if (elem.length >2){
-                var raw_timestamp = parseInt(elem[2])
+                name_ = elem[2]
+                var raw_timestamp = parseInt(elem[3])
             }else{
                 var raw_timestamp = -1;
             }
@@ -104,7 +106,7 @@ function FetchElements(dir) {
 
                 grid_item.onclick = function () {
                     var myHeaders = new Headers();
-                    myHeaders.append("file", name);
+                    myHeaders.append("file", file);
 
                     var requestOptions = {
                         method: 'GET',
@@ -124,7 +126,7 @@ function FetchElements(dir) {
                 };
 
                 var myHeaders = new Headers();
-                myHeaders.append("file", name);
+                myHeaders.append("file", file);
                 myHeaders.append("mod", "p");
 
                 var requestOptions = {
@@ -147,7 +149,7 @@ function FetchElements(dir) {
 
                 grid_item.onclick = function () {
                     var myHeaders = new Headers();
-                    myHeaders.append("file", name);
+                    myHeaders.append("file", file);
 
                     var requestOptions = {
                         method: 'GET',
@@ -168,7 +170,7 @@ function FetchElements(dir) {
                 };
 
                 var myHeaders = new Headers();
-                myHeaders.append("file", name);
+                myHeaders.append("file", file);
                 myHeaders.append("mod", "t");
 
                 var requestOptions = {
@@ -191,7 +193,7 @@ function FetchElements(dir) {
 
                 grid_item.onclick = function () {
                     var myHeaders = new Headers();
-                    myHeaders.append("file", name);
+                    myHeaders.append("file", file);
 
                     var requestOptions = {
                         method: 'GET',
@@ -213,7 +215,7 @@ function FetchElements(dir) {
 
 
                 var myHeaders = new Headers();
-                myHeaders.append("file", name);
+                myHeaders.append("file", file);
                 myHeaders.append("mod", "p");
 
                 var requestOptions = {
@@ -240,10 +242,10 @@ function FetchElements(dir) {
                 grid_item.onclick = function () {
                     controller.abort()
                     if (dir.length == 0) {
-                        FetchElements(name);
+                        FetchElements(file);
                     }
                     else {
-                        FetchElements(dir + "\\" + name);
+                        FetchElements(dir + "\\" + file);
                     }
                 };
 
@@ -257,8 +259,20 @@ function FetchElements(dir) {
 
             var title = document.createElement("h3");
             title.classList = "title-media-item";
-            title.innerText = name.split("\\")[name.split("\\").length - 1]
+            if(name_==0)
+                title.innerText = file.split("\\")[file.split("\\").length - 1];
+            else
+                title.innerText = name_;
             grid_item.appendChild(title);
+
+            if(name_!=0){
+            var title2 = document.createElement("h6");
+            title2.classList = "title-media-item";
+            
+                title2.innerText = file.split("\\")[file.split("\\").length - 1];
+                title2.style.color = "RED";
+            grid_item.appendChild(title2);
+            }
 
             if(raw_timestamp!=-1){
                 var date = document.createElement("h3");
